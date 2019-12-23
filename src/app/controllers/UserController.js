@@ -24,13 +24,13 @@ class UserController {
       return res.status(400).json({ error: 'User already exists.' });
     }
 
-    const { id, name, email, provider } = await User.create(req.body);
+    const { id, name, email, password_hash } = await User.create(req.body);
 
     return res.json({
       id,
       name,
       email,
-      provider,
+      password_hash,
     });
   }
 
@@ -45,7 +45,7 @@ class UserController {
           oldPassword ? field.required() : field
         ),
       confirmPassword: Yup.string().when('password', (password, field) =>
-        password ? field.required().oneOf([Yup.ref('password')]) : field
+        password ? field.required().oneof([Yup.ref('password')]) : field
       ),
     });
 
@@ -61,17 +61,17 @@ class UserController {
       const userExists = await User.findOne({ where: { email } });
 
       if (userExists) {
-        return res.status(400).json({ error: 'User already exists' });
+        return res.status(400).json({ error: 'User already exists.' });
       }
     }
 
     if (oldPassword && !(await user.checkPassword(oldPassword))) {
-      return res.status(401).json({ error: 'Password does not match' });
+      return res.status(401).json({ error: 'Password does not match.' });
     }
 
     await user.update(req.body);
 
-    const { id, name, avatar } = await User.findByPk(req.userid, {
+    const { id, name, avatar } = await User.findByPk(req.userId, {
       include: [
         {
           model: File,
